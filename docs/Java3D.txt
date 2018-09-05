@@ -1,0 +1,65 @@
+Java3D
+======
+
+Positionnement de Java3D:
+						VRML (Virtual Reality Modeling Language)
+							|
+						  Java3D (langage java)
+							|
+						 OpenGL (C routines)
+
+Composition 3D
+
+Les élements de bases sont toujours les Vertices (Vertex) et les index qui perm-
+ettent la connectivité des points afin de former les triangles de tessalation.
+
+Base de la programmation 3D
+
+1. Chargement des vertices
+2. Chargement des index
+3. Conversion 3D->2D. Cette conversion est fonction de la position de l'observat
+eur et de la scène ainsi que de la perspective (cfr Field of View FOV)
+4. Dessiner les triangles dans un context graphique 2D.
+5. afficher le rendu
+
+Projection de 3D en 2D.
+Consiste essentiellement en quelques transformation mathématiques basiques. Je
+me suis par le passé intéressé à cette problématique et ai consigné les résumés
+de mes recherches sur le net dans: Aspect Théoriques de la 3D et DirectX Managé.
+Je ne vais donc pas m'étendre sur le sujet.
+
+Elimination des faces cachées:
+Vecteur normal: on calcul le vecteur normal à chaque surface de triangle. Les
+triangles ayant des normales pointant dans le sens opposé de l'observateur sont
+éliminés. Méthode simple mais pas géniale
+
+Algorithme du peintre : on affiche les triangles les plus éloignées puis les pl-
+us proche. Ce qui permet d'éliminer ce qui ne doit pas apparaître
+
+Z- Buffer: à chaque pixel, en plus d'une position x,y et une couleur on associe
+une position Z (profondeur). Les pixels les plus proches de l'observateur sont
+rendus en premier et stocké en Z. Si un pixel occupant la position (x,y) a déjà
+une valeur de Z, alors il est inutile de le réaficher. C'est gourmand en haute
+résolution mais précis.
+
+Lumière
+L'intensité est maxiamle si le vecteur normal à la surface du triangle est dans
+la direction du rayon envoyé par la source de lumière.
+
+Eléments de java3D:
+SimpleUniverse: helper class sur java3D mais encapsule aussi la scène.
+L'idée est d'ajouter des BranchGroup: noeud d'arbre contenant les sous scène à 
+la scène principale.
+
+Behavior = Interface qui agit comme un lien entre un stimulus et une action. 
+Exemplede stimulus (events)
+Interpolator() : permet d'interpoler un déplacement
+	- utilise Alpha pour déterminer le temps de l'animation
+	- utilise BoundingSphere pour déterminer le clipping
+MouseRotate() : permet d'utiliser la souris pour tourner
+MouseTranslate() : permet d'utiliser la souris pour se tranlater
+
+TransformGroup : Create the behavior.
+
+Scenegraph
+

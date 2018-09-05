@@ -1,0 +1,15 @@
+
+The 3dgy est un projet pédagogique francophone relatif à la 3D. L'idée est de 
+refondre complètement 3D-Crade en une version java parfaitement fonctionnelle
+basée sur Java3D.
+Une tentative fut réalisée en DirectX, C# mais pour des raisons de lourdeur,
+d'instabilité j'ai décidé de l'abandonner. (Ne parlons pas non plus de la versi-
+on Express de C# qui n'est à présent plus gratuite).
+
+Trois parties seront abordées dans ce projet:
+- La création d'interface graphique en Swing
+- L'utilisaton de java3D
+- la mise en place d'un parseur basé sur une grammaire ETF (automate à états fi-
+nis).
+
+Chaque partie sera abordée dans un tuto... Bon amusement!
