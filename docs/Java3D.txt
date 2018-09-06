@@ -1,5 +1,7 @@
 Java3D
 ======
+La terminologie étant extrêmement importante, ce petit tuto devrait vous permet-
+tre d'au moins appréhender les concepts fondamentaux de Java3D.
 
 Positionnement de Java3D:
 						VRML (Virtual Reality Modeling Language)
@@ -42,7 +44,7 @@ rendus en premier et stocké en Z. Si un pixel occupant la position (x,y) a déj
 une valeur de Z, alors il est inutile de le réaficher. C'est gourmand en haute
 résolution mais précis.
 
-Lumière
+Lumière:
 L'intensité est maxiamle si le vecteur normal à la surface du triangle est dans
 la direction du rayon envoyé par la source de lumière.
 
@@ -62,4 +64,67 @@ MouseTranslate() : permet d'utiliser la souris pour se tranlater
 TransformGroup : Create the behavior.
 
 Scenegraph
+==========
+Le scenegraph est l'un des fondements de Java3D puisqu'il permet d'assembler les
+éléments de la scène.
 
+VirtualUniverse: Il s'agit du monde virtuelle dans lequel vont être définis vos
+objets géométriques mais aussi d'autres objets tels que les lampes,...
+
+VirtualUniverse:---->SceneGraphs--->Group--->Node
+
+Le SceneGraph se comporte comme un arbre de fichier: les Node sont les fichiers,
+les groupes les folders. Un folder peut contenir des folders et des fichiers
+
+Il y a différents types de Node et de Group:
+
+Node = {
+	Management Node : Locale, BranchGroup, TransformGroup, ViewPlatform, Switch,
+	... Ils dérivent de Group et gèrent une collection de noeuds enfants.
+	Geometry Node : Shape3D, Background, .... Ces objets dérivent d'une feuille 
+	et définissent la géométrie visible dans le monde virtuelle
+	Control, influence Node - Behaviors, Morph, Light, Sound and Clip,... ils 
+	définissent les comportements (réactions) de l'application.
+}
+Le Node contient une frontière (Boundary ou Bounds en Java3D). Le Bound définit
+le volume d'espace dans lequel se trouve le noeud géométrique. Il peut être sphé
+rique ou carré.
+Les Bound sont utilisés à des fin d'optimization (pour le rendering par exemple)
+
+Group = {
+	BranchGroup (BG) : contient des noeuds enfants
+	TransformGroup (TG) : contient des translations, rotation, scaling et toute 
+	autre information concernant les noeuds enfants.
+}
+
+En Java3D, le scenegraph contient deux branches majeures:
+- Scene : contient les éléments géométriques et leur organisation
+- View : La vue est capable de rendre la scène via l'objet ViewPlatform (VP). Le
+VP es en réalité un point de Vue
+Le scenegraph est contenu dans les Locales d'un univers.
+
+Structure:
+				Univers
+					|
+					Locales
+					|
+					BG				BG
+					|				|
+					TG Light		TG
+					|				|
+					BG Shape3D		VP <-View <-Canvas3D
+					
+1) Retain Mode
+Ce mode de travail délègue tout le rendu de la scène au ScenGraph, c'est en gén-
+éral la manière recommandée de travailler. Par contre on perd certaines possibi-
+lités liées à l'exploitation directe d'OpenGL ou DirectX
+
+2) Immediate Mode
+Dans ce mode on a besoin d'un SceneGraph Réduit:
+Universe
+   |
+Locale
+   |
+   BG
+	|
+	VP -> View <-Canvas
