@@ -127,4 +127,133 @@ Locale
    |
    BG
 	|
-	VP -> View <-Canvas
+	VP -> View <-Canvas3D
+	
+2.1 Boucle de rendu en mode immédiat
+preRender : hook pour préparer les structure de données pour le rendu
+renderField : hook pour changer la manière de rendre la scene (sorte de hack sur
+le render)
+postRender : hook sur après rendu, peut éliminer des allocatons
+postSwap : appelé après le flip de la surface de travaille sur la surface vis-
+ible
+
+Ex: Changer le renderField
+on considère la structure de point suivante, qu'il faudra initialiser
+private PointArray m_nPointArray= new PointArray(10*10, 
+GeometryArray.COORDINATES);
+
+on change le render:
+public ImmediateCanvas3D extends Canvas3D {
+// polymorphisme
+	public void renderField (int fieldDesc) {
+		GraphicsContext3D g = getGraphicsContext3D() // récupérer le contexte3D
+		if (m_bInitialisation) {
+			// Créer une lampes
+			DirectionalLight light = new DirectionalLight();
+			light.setEnable(true);
+			g.addLight (light); // ajoute la lampe au contexte3D
+			
+			// Crée le matérieau
+			Appearance a = new Appearance();
+			Material mat = new Material();
+			mat.setLightEnable (true);
+			mat.setAmbientColor(0.5f, 1.0f, 1.0f);
+			a.setMaterial(mat);
+			
+			g.setAppearance(a);
+			
+			// reste du code
+			
+			// au final on affiche le rendu
+			g.draw( m_PointArray);
+		}
+	}
+}
+
+Il est possible d'utiliser preRender pour modifier une transformation associée
+au contexte graphique. Exemple faire tourner les points autours d'un axe, en 
+incrémentant l'angle de rotation dans le preRender.
+
+3) MixedMode
+
+On va comibner les 2 modes (immediate et retain). Exemple utiliser un TG avant
+d'appeler le renderField.
+
+Compilation du SceneGraph
+
+L’un des objets le plus important du sceneGraph est le Shape3D.
+permet de réaliser des optimisations en fusionnant des apparences ou des 
+géométries communes.
+
+Node:
+javax.media.j3d.SceneGraphObject
+	+-jax.media.j3d.Node
+Node est une interface de SceneGraph
+Il existe deux type de noeuds dan le sceneGraph, les groupes qui sont des colle-
+ctions de noeuds et les Leaf qui sont des noeuds terminaux qui ne contiennent 
+plus de noeud enfants.
+
+Bounds et CollisionBounds
+Chaque Node du scene graph contient une structure Bound ou CollisionBound qui 
+détermine le volume de sa géométrie.
+
+Il existe 3 classes pouvant implémenter le Bounding:
+-BoundingBox
+-BoundingSphere
+-BoundingPolytope
+
+Il est possible d’autocalculer les bounds:
+Ex:
+ColorCube cube = new ColorCube(2.0f);
+cube.setBoundsAutoCompute(true);
+
+Les groupes:
+Group
+javax.media.j3d.SceneGraphObject
+	+-jax.media.j3d.Node
++ javax.media.j3d.Group
+
+Switch
+Groupe spéciale qui permet de cacher ou d’afficher des noeuds conditionnellement 
+en utilisant un BitSetMask
+
+BranchGroup
+est un group qui peut dynamiquement en runtime ajouter ou retirer des Node
+
+OrderGroup:
+permet de donner plus de granularité sur les noeuds qui sont affichés en priori-
+té
+
+Primitive:
+com.sun.j3d.utils.geometry.Primitive
+Un groupe de base pour les primitives géométriques telles que:Box, Sphere, Cone,
+...
+Attention il s’agit d’une classe abstraite
+
+TransformGroup
+Contient toutes les opérations géométriques qui vont s’appliquer aux enfants du 
+groupes: Scaling, translation, rotation. Il s’agit de matrices 4*4 que l’on peut
+appliquer aux Noeuds géométrique pour implémenter ces transformations.
+
+
+Définir l’Univers
+
+L’élément le plus important en Java3D est le choix de l’univers à considérer 
+(est-on à l’échelle de la galaxie, une rue, une pièce,  un gluon ou encore la 
+distance Planck).
+
+VirtualUniverse
+	SimpleUniverse
+
+Virtual Universe contient le monde virtuel qui sera peuplé par les objets créés 
+par le développeur.
+Un Locale représente une aire géographique dans le virtual universe. Les locales 
+utilise des HiResCoord (8 bytes= 256 bits) pour les représentation x,y,z des 
+points.
+
+La première chose à faire est d’ancrer le Locale dans l’univers.
+
+Structure de HiResCoord:
+8 8 8 8   8 8 8 8
+0 0 0 0 . 0 0 0 0
+La partie unité (4eme byte) représente le mètre.
