@@ -237,7 +237,7 @@ appliquer aux Noeuds géométrique pour implémenter ces transformations.
 
 
 Définir l’Univers
-
+=================
 L’élément le plus important en Java3D est le choix de l’univers à considérer 
 (est-on à l’échelle de la galaxie, une rue, une pièce,  un gluon ou encore la 
 distance Planck).
@@ -256,4 +256,128 @@ La première chose à faire est d’ancrer le Locale dans l’univers.
 Structure de HiResCoord:
 8 8 8 8   8 8 8 8
 0 0 0 0 . 0 0 0 0
+4 3 2 1   -1 -2 -3 -4
 La partie unité (4eme byte) représente le mètre.
+
+Représentation des distance:
+2^53.07 = 1 année lumière
+2^9.97 = 1 km
+2^0 = 1m
+2^-19 = 1micron
+
+Si je veux représenter 1 distance de 1 année lumière en x, je dois mettre à 1
+le 53ème bits de la coordonnée X HiResCoord. Or si je me place à partir du mètre
+cela revient à mettre le (53-32) = 21ème bits à 1 dans le troisième integer du
+tableau en partant du point.
+X en HiResCoord vaut donc 2^21 = 0x200000 pour représenter une année lumière.
+
+Affichage du Locale
+Le locale peut-être rempli d'objet géométrique. Il devra être rendu dans un obj-
+et View attaché à une instance ViewPlatform du SceneGraph. View sera lui même 
+attaché à 1 ou plusieurs Canvas3D
+			Universe	
+				|
+				Locale (position dans l'univers, via HiResCoord)
+				|
+				BG (contient les objets géométriques)
+				|
+				TG (Transform group: scale, rotation, translation)
+				|
+				VP<-View <-Canvas3D
+Ce qui se traduit par :
+
+BranchGroup vpBranchGroup = new BranchGroup();
+TransformGroup tg = new TransformGroup();
+
+ViwPlatform vp = new ViewPlatform();
+
+vp.setViewAttachPolicy( View.RELATIVE_TO_FIELD_OF_VIEW);
+
+tg.addChil( vp );
+
+vpBranchGroup.addChild( tg);
+locale.addBranchGraph(vpBranchGroup);
+
+View view = new View();
+view.attachViewPlatform( vp );
+view.setBackClipDistance (110);
+view.seetFrontClipDistance (10 );
+
+//create the Canvas3D that the View will render into.
+//get the graphics capabilities of the system and create
+//the best Canvas3D possible.
+GraphicsConfigTemplate3D gc3D = new GraphicsConfigTemplate3D();
+gc3D.setSceneAntialiasing( GraphicsConfigTemplate.PREFERRED );
+GraphicsDevice gd[] = GraphicsEnvironment.
+getLocalGraphicsEnvironment().getScreenDevices();
+Canvas3D c3d = new Canvas3D( gd[0].getBestConfiguration( gc3D ) );
+//set the size of the Canvas3D
+c3d.setSize( 512, 512 );
+//add the Canvas3D to the View so that it is rendered into
+view.addCanvas3D( c3d );
+//add the Canvas3D component to a parent AWT or Swing Panel
+add( c3d );
+
+SimpleUniverse
+com.sun.j3d.utils.SimpleUniverse 
+
+Permet de gérer des changements de vues (ex:vue du haut, puis vue en perspective
+). Exemple : ViewingPlatform () et ViewerAvatar.
+
+DataModels
+==========
+- Surface (skin) model
+- Voxel (Voluùe model)
+- Modèle paramétrique mathématiques
+
+Modèle surface
+Géométrie = collection de triangles. Cette technique modélise uniquement des
+surfaces sur lequelles on appliquera des textures (skins)
+
+Voxel
+permet de reconstituer les parties internes d'un volume. Très utile en imagerie
+médicale puisque cela permet de faire des vues en coupe des organes. (cfr Algori-
+thme du "Marching Cube" W.E Lorensen)
+
+Modèles mathématiques
+On peut utiliser des splines pour éléminer l'effet de triangularisation.
+Ex: Non-Uniform Relational B- Splines (NURBS)
+
+Des compromis entre qualité de rendu (nombre de polygones), mémoire, CPU et FPS
+doivent être faits en fonction de la nature de l'application.
+
+sun propose des interfaces ObjectLoaders pour pouvoir charger des objets indépen
+dants (ex: objets VRML, DXF, ...). Ceci permet aux designers et aux dev de se 
+concentrer sur leurs tâches respectives en parallèle.
+
+Références géométriques
+=======================
+Il y a trois types de géométries:
+- Shape3D (javax.media.j3d)
+- Classes primitives dérivées (sun.java.j3d.utils.Box, Sphere, Cone, ...)
+- Text 2D et 3D
+
+Shape3D
+Rappel:
+javax.media.j3d.SceneGraphObject
+	+--javax.media.j3d.Node
+		+---- javax/media.j3d.Leaf
+			+--- javax.media.j3d.Shape3D
+			
+
+Un object Shape3D fait toujours référence à une apparence (qui définit, le
+matériau, le type de trait, de point, ...)
+
+Il est possible d'associer:
+- une géométrie au Shape3D telle que : QuadArray, PointArray, TriangleArray
+au moyen de setGeometry()
+- d'ajouter des UserData, ex: setUserData(java.lang.Object userData)
+Cet objet peut contenir des informations custom sur le Shape3D, être utilisé 
+pour identifier l'objet lorsqu'il est sélectionné.
+
+Les primitives
+Ils ne font pas partie de javax.media.j3d mais dérive de groupe. Une primitive 
+n'est pas un Shape3D, elle regroupe plusieurs Shape3D.
+Exemple de primitive : Sphere,Cone, Box
+
+
